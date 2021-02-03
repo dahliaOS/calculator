@@ -8,14 +8,7 @@
 <a href="https://paypal.me/officialdahliaos">Donate</a> ●
 <a href="https://github.com/dahliaos/documentation">Documentation</a>
 
-# name_of_repo
-Insert some badges from https://shields.io
-(Mostly a License, Issues open badges (can also be localized, website and ci/deploy badges))
-
- - **Short introduction** of the repository (can and should be in multiple lines)
- - **Add new headers** depending on what the repo is and what you want to write
- - **Do not change** the Contribute and License header sections, they're good to go
- - **These lines in this header sections can go**, also make sure you set correct topics on the repo
+# Calculator
 
 ## Contribute
 
