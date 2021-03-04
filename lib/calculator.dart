@@ -186,6 +186,8 @@ class _CalculatorHomeState extends State<CalculatorHome> {
       } catch (e) {
         if (errorcount < 5 && originalExp == "error+123")
           _controller.text = 'Congratulations!';
+        else if (errorcount < 5 && originalExp == "(×.×)")
+          _controller.text = 'dead';
         else if (originalExp == "you little...π") {
           _controller.text = 'warning';
         } else if (errorcount > 5)
@@ -220,7 +222,7 @@ class _CalculatorHomeState extends State<CalculatorHome> {
         _append(label);
       };
     return Expanded(
-      child: InkResponse(
+      child: InkWell(
         onTap: func,
         onLongPress: (label == 'C') ? () => _clear(true) : null,
         child: Center(
