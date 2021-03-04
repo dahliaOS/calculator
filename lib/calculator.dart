@@ -51,6 +51,8 @@ class _CalculatorHomeState extends State<CalculatorHome> {
   bool _useRadians = false;
   bool _invertedMode = false;
   bool _toggled = false;
+  bool _errored = false;
+  bool _egged = false;
 
   void _onTextChanged() {
     final inputWidth =
@@ -182,18 +184,29 @@ class _CalculatorHomeState extends State<CalculatorHome> {
             .toStringAsPrecision(13)
             .replaceAll(RegExp(r'0+$'), '')
             .replaceAll(RegExp(r'\.$'), '');
-        if (_controller.text == "NaN") _controller.text = "Impossible";
+        if (_controller.text == "NaN") {
+          _controller.text = "Impossible";
+          _errored = true;
+        }
       } catch (e) {
-        if (errorcount < 5 && originalExp == "error+123")
+        if (errorcount < 5 && originalExp == "error+123") {
           _controller.text = 'Congratulations!';
-        else if (errorcount < 5 && originalExp == "(×.×)")
+          _errored = true;
+          _egged = true;
+        } else if (originalExp == "(×.×)") {
           _controller.text = 'dead';
-        else if (originalExp == "you little...π") {
+          _errored = true;
+          _egged = true;
+        } else if (originalExp == "you little...π") {
           _controller.text = 'warning';
-        } else if (errorcount > 5)
+          _errored = true;
+        } else if (errorcount > 5) {
           _controller.text = 'you little...';
-        else
+          _errored = true;
+        } else {
           _controller.text = 'error';
+          _errored = true;
+        }
         errorcount++;
       }
     });
@@ -219,12 +232,17 @@ class _CalculatorHomeState extends State<CalculatorHome> {
   Widget _buildButton(String label, [Function() func]) {
     if (func == null)
       func = () {
+        if (_errored) {
+          _errored = false;
+          _controller.text = '';
+        }
         _append(label);
       };
     return Expanded(
       child: InkWell(
         onTap: func,
-        onLongPress: (label == 'C') ? () => _clear(true) : null,
+        onLongPress: (label == 'C') ? () => _clear(true) : 
+        (_errored) ? () => _append(label) : null,
         child: Center(
             child: Text(
           label,
@@ -261,7 +279,11 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                 contentPadding: textFieldPadding,
               ),
               textAlign: TextAlign.right,
-              style: textFieldTextStyle.copyWith(fontSize: _fontSize),
+              style: textFieldTextStyle.copyWith(
+                fontSize: _fontSize,
+                color: _egged ? Colors.lightBlue[400] :
+                  _errored ? Colors.red : null
+              ),
               focusNode: AlwaysDisabledFocusNode(),
             ),
           ),
