@@ -19,7 +19,7 @@ import 'dart:math' as math;
 
 class Calculator extends StatelessWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget/*!*/ build(BuildContext context) {
     return MaterialApp(
       title: 'Calculator',
       theme: ThemeData(
@@ -107,7 +107,11 @@ class _CalculatorHomeState extends State<CalculatorHome> {
 
   void _clear([bool longPress = false]) {
     setState(() {
-      if (longPress) {
+      if (_errored) {
+        _errored = false;
+        _egged = false;
+        _controller.text = '';
+      } else if (longPress) {
         _controller.text = '';
       } else {
         if (_controller.selection.baseOffset >= 0) {
@@ -161,7 +165,7 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                 (Match m) =>
                     "pow(${m.group(1) ?? ''}${m.group(2) ?? ''},${m.group(3) ?? ''}${m.group(4) ?? ''})")
             .replaceAll('√(', 'sqrt(');
-        print(expText);
+        //print(expText);
         Expression exp = Expression.parse(expText);
         var context = {
           "PI": math.pi,
@@ -234,6 +238,7 @@ class _CalculatorHomeState extends State<CalculatorHome> {
       func = () {
         if (_errored) {
           _errored = false;
+          _egged = false;
           _controller.text = '';
         }
         _append(label);
