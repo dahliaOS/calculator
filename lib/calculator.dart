@@ -19,7 +19,7 @@ import 'dart:math' as math;
 
 class Calculator extends StatelessWidget {
   @override
-  Widget/*!*/ build(BuildContext context) {
+  Widget /*!*/ build(BuildContext context) {
     return MaterialApp(
       title: 'Calculator',
       theme: ThemeData(
@@ -46,7 +46,7 @@ class _CalculatorHomeState extends State<CalculatorHome> {
       TextStyle(fontSize: 80.0, fontWeight: FontWeight.w300);
   Color _numColor = Color.fromRGBO(48, 47, 63, .94);
   Color _opColor = Color.fromRGBO(22, 21, 29, .93);
-  double _fontSize = textFieldTextStyle.fontSize;
+  double? _fontSize = textFieldTextStyle.fontSize;
   final _pageController = PageController(initialPage: 0);
   bool _useRadians = false;
   bool _invertedMode = false;
@@ -56,7 +56,7 @@ class _CalculatorHomeState extends State<CalculatorHome> {
 
   void _onTextChanged() {
     final inputWidth =
-        _textFieldKey.currentContext.size.width - textFieldPadding.horizontal;
+        _textFieldKey.currentContext!.size!.width - textFieldPadding.horizontal;
 
     final textPainter = TextPainter(
       textDirection: TextDirection.ltr,
@@ -70,7 +70,7 @@ class _CalculatorHomeState extends State<CalculatorHome> {
     var textWidth = textPainter.width;
     var fontSize = textFieldTextStyle.fontSize;
 
-    while (textWidth > inputWidth && fontSize > 40.0) {
+    while (textWidth > inputWidth && fontSize! > 40.0) {
       fontSize -= 0.5;
       textPainter.text = TextSpan(
         text: _controller.text,
@@ -233,7 +233,7 @@ class _CalculatorHomeState extends State<CalculatorHome> {
     return factorialRange(1, number);
   }
 
-  Widget _buildButton(String label, [Function() func]) {
+  Widget _buildButton(String label, [Function()? func]) {
     if (func == null)
       func = () {
         if (_errored) {
@@ -246,8 +246,11 @@ class _CalculatorHomeState extends State<CalculatorHome> {
     return Expanded(
       child: InkWell(
         onTap: func,
-        onLongPress: (label == 'C') ? () => _clear(true) : 
-        (_errored) ? () => _append(label) : null,
+        onLongPress: (label == 'C')
+            ? () => _clear(true)
+            : (_errored)
+                ? () => _append(label)
+                : null,
         child: Center(
             child: Text(
           label,
@@ -285,10 +288,12 @@ class _CalculatorHomeState extends State<CalculatorHome> {
               ),
               textAlign: TextAlign.right,
               style: textFieldTextStyle.copyWith(
-                fontSize: _fontSize,
-                color: _egged ? Colors.lightBlue[400] :
-                  _errored ? Colors.red : null
-              ),
+                  fontSize: _fontSize,
+                  color: _egged
+                      ? Colors.lightBlue[400]
+                      : _errored
+                          ? Colors.red
+                          : null),
               focusNode: AlwaysDisabledFocusNode(),
             ),
           ),
