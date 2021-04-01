@@ -16,6 +16,7 @@ limitations under the License.
 import 'package:flutter/material.dart';
 import 'package:expressions/expressions.dart';
 import 'dart:math' as math;
+import './extraMath.dart';
 
 class Calculator extends StatelessWidget {
   @override
@@ -36,10 +37,21 @@ class Calculator extends StatelessWidget {
   }
 }
 
+enum _messageMode {
+  ERROR,
+  WARNING,
+  NOTICE,
+  EASTER_EGG
+}
+enum _games {
+  NONE,
+  PI
+}
+
 class _CalculatorHomeState extends State<CalculatorHome> {
+  // Statics
   TextSelection _currentSelection =
       TextSelection(baseOffset: 0, extentOffset: 0);
-  TextEditingController _controller = TextEditingController(text: '');
   final GlobalKey _textFieldKey = GlobalKey();
   final textFieldPadding = EdgeInsets.only(right: 8.0);
   static TextStyle textFieldTextStyle =
@@ -47,12 +59,37 @@ class _CalculatorHomeState extends State<CalculatorHome> {
   Color _numColor = Color.fromRGBO(48, 47, 63, .94);
   Color _opColor = Color.fromRGBO(22, 21, 29, .93);
   double? _fontSize = textFieldTextStyle.fontSize;
+  // Controllers
+  TextEditingController _controller = TextEditingController(text: '');
   final _pageController = PageController(initialPage: 0);
+  // Toggles
+  /// Defaults to degree mode (false)
   bool _useRadians = false;
+  /// Refers to the sin, cos, sqrt, etc.
   bool _invertedMode = false;
-  bool _toggled = false;
+  //bool _toggled = false;
+  /// Whether or not the result is an error.
   bool _errored = false;
+  /// Whether or not the result is an Easter egg.
+  /// Refrain from using this for real calculations.
   bool _egged = false;
+  // Secondary Error
+  _messageMode _secondaryErrorType = _messageMode.ERROR;
+  bool _secondaryErrorVisible = false;
+  String _secondaryErrorValue = "";
+  // Game Mode
+  _games _game = _games.NONE;
+
+  void _setSecondaryError(String message, [_messageMode type = _messageMode.ERROR]) {
+    _secondaryErrorValue = message;
+    _secondaryErrorType = type;
+    // The following is slightly convoluted for "show this for 3 seconds and fade out"
+    setState(() => _secondaryErrorVisible = true);
+    (() async {
+      await Future.delayed(Duration(seconds: 3));
+      setState(() => _secondaryErrorVisible = false);
+    })();
+  }
 
   void _onTextChanged() {
     final inputWidth =
@@ -192,6 +229,14 @@ class _CalculatorHomeState extends State<CalculatorHome> {
           _controller.text = "Impossible";
           _errored = true;
         }
+        if (originalExp.startsWith("4÷1")) {
+          _setSecondaryError("Happy April Fools' Day!", _messageMode.EASTER_EGG);
+          if (DateTime.now().month == DateTime.april && DateTime.now().day == 1) {
+            _controller.text = "https://youtu.be/bxqLsrlakK8";
+            _errored = true;
+            _egged = true;
+          }
+        }
       } catch (e) {
         if (errorcount < 5 && originalExp == "error+123") {
           _controller.text = 'Congratulations!';
@@ -215,22 +260,6 @@ class _CalculatorHomeState extends State<CalculatorHome> {
       }
     });
     _onTextChanged();
-  }
-
-  double log10(num x) {
-    return math.log(x) / math.log(10);
-  }
-
-  int factorial(int number) {
-    int factorialRange(int bottom, int top) {
-      if (top == bottom) {
-        return bottom;
-      }
-
-      return top * factorialRange(bottom, top - 1);
-    }
-
-    return factorialRange(1, number);
   }
 
   Widget _buildButton(String label, [Function()? func]) {
@@ -272,29 +301,79 @@ class _CalculatorHomeState extends State<CalculatorHome> {
       appBar: AppBar(
         backgroundColor: Theme.of(context).canvasColor,
         elevation: 0.0,
-        title: Text(_toggled ? (_useRadians ? 'RAD' : 'DEG') : '',
-            style: TextStyle(color: Colors.grey)),
+        title: Row(
+          children: [
+            TextButton(
+              onPressed: () => setState(() => _useRadians = !_useRadians),
+              child: Text(_useRadians ? 'RAD' : 'DEG',
+                style: TextStyle(color: Colors.grey)),
+            ),
+            AnimatedOpacity(
+              opacity: _game != _games.NONE ? 1.0 : 0.0,
+              duration: Duration(milliseconds: 200),
+              child: (_game != _games.NONE) ? IconButton(
+                icon: Icon(Icons.videogame_asset_outlined),
+                onPressed:  () => _game == _games.PI ? null /* TODO: set the prior to the Digits of Pi game */
+                : null ,
+                color: Theme.of(context).accentColor,
+              ): Padding( //make the illusion that it's still there
+                padding: const EdgeInsets.all(8.0),
+                child: Icon(Icons.videogame_asset_outlined, color: Theme.of(context).accentColor),
+              ),
+            )
+          ],
+        ),
       ),
       body: Column(
         children: [
           Expanded(
             flex: 3,
-            child: TextField(
-              key: _textFieldKey,
-              controller: _controller,
-              decoration: InputDecoration(
-                border: InputBorder.none,
-                contentPadding: textFieldPadding,
-              ),
-              textAlign: TextAlign.right,
-              style: textFieldTextStyle.copyWith(
-                  fontSize: _fontSize,
-                  color: _egged
-                      ? Colors.lightBlue[400]
-                      : _errored
-                          ? Colors.red
-                          : null),
-              focusNode: AlwaysDisabledFocusNode(),
+            child: Column(
+              children: [
+                TextField(
+                  key: _textFieldKey,
+                  controller: _controller,
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    contentPadding: textFieldPadding,
+                  ),
+                  textAlign: TextAlign.right,
+                  style: textFieldTextStyle.copyWith(
+                      fontSize: _fontSize,
+                      color: _egged
+                          ? Colors.lightBlue[400]
+                          : _errored
+                              ? Colors.red
+                              : null),
+                  focusNode: AlwaysDisabledFocusNode(),
+                ),
+                Expanded(child: Container()),
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Row(
+                    children: [
+                      AnimatedOpacity(
+                        opacity: _secondaryErrorVisible ? 1.0 : 0.0,
+                        duration: _secondaryErrorVisible ? Duration(milliseconds: 10) : Duration(seconds: 1),
+                        //onEnd: () => _secondaryErrorVisible = false,
+                        child: Text(
+                          _secondaryErrorValue,
+                          style: TextStyle(
+                            color: _secondaryErrorType == _messageMode.ERROR ? Colors.red
+                            : _secondaryErrorType == _messageMode.WARNING ? Colors.amber
+                            : _secondaryErrorType == _messageMode.NOTICE ? Theme.of(context).textTheme.bodyText1?.color
+                            : _secondaryErrorType == _messageMode.EASTER_EGG ? Colors.lightBlue
+                            : Colors.red, //even though this slot will never be used
+                            fontSize: (MediaQuery.of(context).orientation == Orientation.portrait)
+                                  ? 32.0
+                                  : 20.0, //24
+                          )),
+                      )
+                    ],
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  ),
+                ),
+              ],
             ),
           ),
           Expanded(
@@ -491,8 +570,8 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                               _buildButton(_useRadians ? 'RAD' : 'DEG', () {
                                 setState(() {
                                   _useRadians = !_useRadians;
-                                  _toggled = true;
                                 });
+                                _setSecondaryError("This button will be removed in the future", _messageMode.WARNING);
                               }),
                               _buildButton('!'),
                             ],
