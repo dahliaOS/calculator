@@ -13,10 +13,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+import 'package:calculator/pigame.dart';
 import 'package:flutter/material.dart';
 import 'package:expressions/expressions.dart';
 import 'dart:math' as math;
 import './extraMath.dart';
+import 'package:http/http.dart' as http;
 
 class Calculator extends StatelessWidget {
   @override
@@ -61,8 +63,9 @@ class _CalculatorHomeState extends State<CalculatorHome> {
   double? _fontSize = textFieldTextStyle.fontSize;
   // Controllers
   TextEditingController _controller = TextEditingController(text: '');
-  final _pageController = PageController(initialPage: 0);
+  PageController _pageController = PageController(initialPage: 0);
   // Toggles
+  bool _isLandscape = false;
   /// Defaults to degree mode (false)
   bool _useRadians = false;
   /// Refers to the sin, cos, sqrt, etc.
@@ -119,6 +122,8 @@ class _CalculatorHomeState extends State<CalculatorHome> {
 
     setState(() {
       _fontSize = fontSize;
+      if (_controller.text.startsWith("3.14")) _game = _games.PI;
+      else _game = _games.NONE;
     });
   }
 
@@ -297,6 +302,9 @@ class _CalculatorHomeState extends State<CalculatorHome> {
 
   @override
   Widget build(BuildContext context) {
+    final _isLOrig = _isLandscape;
+    _isLandscape = !(MediaQuery.of(context).orientation == Orientation.portrait);
+    if (_isLandscape != _isLOrig) _pageController = PageController(initialPage: 0, viewportFraction: _isLandscape ? 1.0 : 2.0);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).canvasColor,
@@ -313,8 +321,32 @@ class _CalculatorHomeState extends State<CalculatorHome> {
               duration: Duration(milliseconds: 200),
               child: (_game != _games.NONE) ? IconButton(
                 icon: Icon(Icons.videogame_asset_outlined),
-                onPressed:  () => _game == _games.PI ? null /* TODO: set the prior to the Digits of Pi game */
-                : null ,
+                onPressed:  () => 
+                _game == _games.PI ? (() async {
+                  bool goAhead = true;
+                  try {
+                    final response = await http.get(Uri.parse("https://api.pi.delivery/v1/pi?start=0&numberOfDigits=1"));
+                    if (response.statusCode != 200) throw Exception();
+                  } catch(e) {
+                    goAhead = await showDialog(context: context, builder: (context) => AlertDialog(
+                      title: Text("Cannot reach server"),
+                      content: Text("If the server cannot be reached, the game will have a maximum score of 100.\n\n"
+                      "Are you sure you want to continue?"),
+                      actions: [
+                        TextButton(onPressed: () => Navigator.pop(context, false), child: Text("NO")),
+                        TextButton(onPressed: () => Navigator.pop(context, true), child: Text("YES")),
+                      ],
+                    ));
+                  }
+                  if (goAhead) Navigator.push(context, MaterialPageRoute(builder: (context) => Theme(
+                    data: ThemeData(
+                      brightness: Brightness.dark,
+                      primarySwatch: Colors.green,
+                      accentColor: Colors.green[600],
+                    ),
+                    child: PiGame()
+                  )));
+                })() : null,
                 color: Theme.of(context).accentColor,
               ): Padding( //make the illusion that it's still there
                 padding: const EdgeInsets.all(8.0),
