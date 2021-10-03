@@ -1,0 +1,10 @@
+{
+      "id": "io.dahliaos.calculator",
+      "altName": "calculator",
+      "realName": "Calculator",
+      "version": "dahliaOS-latest",
+      "description": "Calculator for dahliaOS",
+      "sourceCode": "https://github.com/dahliaOS/calculator",
+      "hash": "DAP_AUTOMATION_PKGHASH",
+      "architecture": "x86_64"
+},

@@ -1,0 +1,7 @@
+[Desktop Entry]
+Name=Calculator
+Exec=calculator
+Terminal=false
+Icon=calculator
+Type=Application
+Categories=Utility;
