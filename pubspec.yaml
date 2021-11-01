@@ -32,8 +32,10 @@ dev_dependencies:
 
 flutter_icons:
   android: true
-  ios: true
-  image_path: "calculator.png"
+  ios: "assets/icons/CalculatorFullIcon.png"
+  image_path: "assets/icons/CalculatorCircle.png"
+  adaptive_icon_background: "assets/icons/ic_background.png"
+  adaptive_icon_foreground: "assets/icons/ic_foreground.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
