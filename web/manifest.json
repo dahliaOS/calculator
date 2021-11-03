@@ -1,6 +1,6 @@
 {
-    "name": "calculator",
-    "short_name": "calculator",
+    "name": "dahliaOS Calculator",
+    "short_name": "Calculator",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
