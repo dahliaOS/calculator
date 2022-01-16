@@ -406,6 +406,7 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                               flex: 4,
                               child: Material(
                                 color: _numColor,
+                                clipBehavior: Clip.antiAlias,
                                 borderRadius: BorderRadius.only(
                                     topRight: Radius.circular(8)),
                                 child: Column(
