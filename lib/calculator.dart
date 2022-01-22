@@ -17,6 +17,7 @@ import 'package:flutter/material.dart';
 import 'package:expressions/expressions.dart';
 import 'dart:math' as math;
 import './extraMath.dart';
+import 'pageController.dart';
 
 class Calculator extends StatelessWidget {
   @override
@@ -25,12 +26,20 @@ class Calculator extends StatelessWidget {
       title: 'Calculator',
       theme: ThemeData(
         primarySwatch: Colors.green,
-        accentColor: Colors.green[600],
+        colorScheme: ColorScheme.fromSwatch(
+          primarySwatch: Colors.green,
+          accentColor: Colors.green[600],
+          brightness: Brightness.light
+        ),
       ),
       darkTheme: ThemeData(
         brightness: Brightness.dark,
         primarySwatch: Colors.green,
-        accentColor: Colors.green[600],
+        colorScheme: ColorScheme.fromSwatch(
+          primarySwatch: Colors.green,
+          accentColor: Colors.green[600],
+          brightness: Brightness.dark
+        ),
       ),
       home: CalculatorHome(),
     );
@@ -59,9 +68,10 @@ class _CalculatorHomeState extends State<CalculatorHome> {
   Color _numColor = Color.fromRGBO(48, 47, 63, .94);
   Color _opColor = Color.fromRGBO(22, 21, 29, .93);
   double? _fontSize = textFieldTextStyle.fontSize;
+  static const _twoPageBreakpoint = 640;
   // Controllers
   TextEditingController _controller = TextEditingController(text: '');
-  final _pageController = PageController(initialPage: 0);
+  var _pageController = AdvancedPageController(initialPage: 0);
   // Toggles
   /// Defaults to degree mode (false)
   bool _useRadians = false;
@@ -297,6 +307,11 @@ class _CalculatorHomeState extends State<CalculatorHome> {
 
   @override
   Widget build(BuildContext context) {
+    if (MediaQuery.of(context).size.width > _twoPageBreakpoint) {
+      _pageController.viewportFraction = 0.5;
+    } else {
+      _pageController.viewportFraction = 1.0;
+    }
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).canvasColor,
@@ -315,10 +330,10 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                 icon: Icon(Icons.videogame_asset_outlined),
                 onPressed:  () => _game == _games.PI ? null /* TODO: set the prior to the Digits of Pi game */
                 : null ,
-                color: Theme.of(context).accentColor,
+                color: Theme.of(context).colorScheme.secondary
               ): Padding( //make the illusion that it's still there
                 padding: const EdgeInsets.all(8.0),
-                child: Icon(Icons.videogame_asset_outlined, color: Theme.of(context).accentColor),
+                child: Icon(Icons.videogame_asset_outlined, color: Theme.of(context).colorScheme.secondary),
               ),
             )
           ],
@@ -382,6 +397,7 @@ class _CalculatorHomeState extends State<CalculatorHome> {
               color: _opColor,
               child: PageView(
                 controller: _pageController,
+                padEnds: false,
                 children: [
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -480,9 +496,9 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                           _buildButton('=', _equals),
                         ],
                       )),
-                      InkWell(
+                      if (MediaQuery.of(context).size.width <= _twoPageBreakpoint) InkWell(
                         child: Container(
-                          color: Theme.of(context).accentColor,
+                          color: Theme.of(context).colorScheme.secondary,
                           child: Icon(
                             Icons.chevron_left,
                             color: Colors.white,
@@ -497,84 +513,105 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                     ],
                   ),
                   Material(
-                    color: Theme.of(context).accentColor,
-                    child: Column(
+                    color: Theme.of(context).colorScheme.secondary,
+                    child: Row(
                       children: [
-                        Expanded(
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              _buildButton(
-                                  _invertedMode ? 'sin⁻¹' : 'sin',
-                                  () => _invertedMode
-                                      ? _append('sin⁻¹(')
-                                      : _append('sin(')),
-                              _buildButton(
-                                  _invertedMode ? 'cos⁻¹' : 'cos',
-                                  () => _invertedMode
-                                      ? _append('cos⁻¹(')
-                                      : _append('cos(')),
-                              _buildButton(
-                                  _invertedMode ? 'tan⁻¹' : 'tan',
-                                  () => _invertedMode
-                                      ? _append('tan⁻¹(')
-                                      : _append('tan(')),
-                            ],
+                        if (MediaQuery.of(context).size.width <= _twoPageBreakpoint) InkWell(
+                          child: Container(
+                            height: double.infinity,
+                            //color: _opColor,
+                            child: Icon(
+                              Icons.chevron_right,
+                              color: Colors.white,
+                            ),
+                          ),
+                          onTap: () => _pageController.animateToPage(
+                            0,
+                            duration: Duration(milliseconds: 500),
+                            curve: Curves.ease,
                           ),
                         ),
                         Expanded(
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          child: Column(
                             children: [
-                              _buildButton(
-                                  _invertedMode ? 'eˣ' : 'ln',
-                                  () => _invertedMode
-                                      ? _append('℮^(')
-                                      : _append('ln(')),
-                              _buildButton(
-                                  _invertedMode ? '10ˣ' : 'log',
-                                  () => _invertedMode
-                                      ? _append('10^(')
-                                      : _append('log(')),
-                              _buildButton(
-                                  _invertedMode ? 'x²' : '√',
-                                  () => _invertedMode
-                                      ? _append('^2')
-                                      : _append('√(')),
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              _buildButton('π'),
-                              _buildButton('e', () => _append('℮')),
-                              _buildButton('^'),
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              _buildButton(_invertedMode ? '𝗜𝗡𝗩' : 'INV',
-                                  () {
-                                setState(() {
-                                  _invertedMode = !_invertedMode;
-                                });
-                              }),
-                              _buildButton(_useRadians ? 'RAD' : 'DEG', () {
-                                setState(() {
-                                  _useRadians = !_useRadians;
-                                });
-                                _setSecondaryError("This button will be removed in the future", _messageMode.WARNING);
-                              }),
-                              _buildButton('!'),
+                              Expanded(
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    _buildButton(
+                                        _invertedMode ? 'sin⁻¹' : 'sin',
+                                        () => _invertedMode
+                                            ? _append('sin⁻¹(')
+                                            : _append('sin(')),
+                                    _buildButton(
+                                        _invertedMode ? 'cos⁻¹' : 'cos',
+                                        () => _invertedMode
+                                            ? _append('cos⁻¹(')
+                                            : _append('cos(')),
+                                    _buildButton(
+                                        _invertedMode ? 'tan⁻¹' : 'tan',
+                                        () => _invertedMode
+                                            ? _append('tan⁻¹(')
+                                            : _append('tan(')),
+                                  ],
+                                ),
+                              ),
+                              Expanded(
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    _buildButton(
+                                        _invertedMode ? 'eˣ' : 'ln',
+                                        () => _invertedMode
+                                            ? _append('℮^(')
+                                            : _append('ln(')),
+                                    _buildButton(
+                                        _invertedMode ? '10ˣ' : 'log',
+                                        () => _invertedMode
+                                            ? _append('10^(')
+                                            : _append('log(')),
+                                    _buildButton(
+                                        _invertedMode ? 'x²' : '√',
+                                        () => _invertedMode
+                                            ? _append('^2')
+                                            : _append('√(')),
+                                  ],
+                                ),
+                              ),
+                              Expanded(
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    _buildButton('π'),
+                                    _buildButton('e', () => _append('℮')),
+                                    _buildButton('^'),
+                                  ],
+                                ),
+                              ),
+                              Expanded(
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    _buildButton(_invertedMode ? '𝗜𝗡𝗩' : 'INV',
+                                        () {
+                                      setState(() {
+                                        _invertedMode = !_invertedMode;
+                                      });
+                                    }),
+                                    _buildButton(_useRadians ? 'RAD' : 'DEG', () {
+                                      setState(() {
+                                        _useRadians = !_useRadians;
+                                      });
+                                      _setSecondaryError("This button will be removed in the future", _messageMode.WARNING);
+                                    }),
+                                    _buildButton('!'),
+                                  ],
+                                ),
+                              ),
                             ],
                           ),
                         ),
