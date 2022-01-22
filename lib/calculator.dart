@@ -35,7 +35,10 @@ class Calculator extends StatelessWidget {
       darkTheme: ThemeData(
         brightness: Brightness.dark,
         primarySwatch: Colors.green,
+        
+        scaffoldBackgroundColor: Colors.blueGrey[900],
         colorScheme: ColorScheme.fromSwatch(
+          backgroundColor: Colors.blueGrey[900],
           primarySwatch: Colors.green,
           accentColor: Colors.green[600],
           brightness: Brightness.dark
@@ -314,7 +317,7 @@ class _CalculatorHomeState extends State<CalculatorHome> {
     }
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).canvasColor,
+        backgroundColor: Colors.transparent,
         elevation: 0.0,
         title: Row(
           children: [
