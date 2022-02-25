@@ -16,10 +16,12 @@ limitations under the License.
 import 'package:flutter/material.dart';
 import 'package:expressions/expressions.dart';
 import 'dart:math' as math;
-import './extraMath.dart';
-import 'pageController.dart';
+import 'extra_math.dart';
+import 'page_controller.dart';
 
 class Calculator extends StatelessWidget {
+  const Calculator({Key? key}) : super(key: key);
+
   @override
   Widget /*!*/ build(BuildContext context) {
     return MaterialApp(
@@ -29,22 +31,21 @@ class Calculator extends StatelessWidget {
         colorScheme: ColorScheme.fromSwatch(
           primarySwatch: Colors.green,
           accentColor: Colors.green[600],
-          brightness: Brightness.light
+          brightness: Brightness.light,
         ),
       ),
       darkTheme: ThemeData(
         brightness: Brightness.dark,
         primarySwatch: Colors.green,
-        
         scaffoldBackgroundColor: Colors.blueGrey[900],
         colorScheme: ColorScheme.fromSwatch(
           backgroundColor: Colors.blueGrey[900],
           primarySwatch: Colors.green,
           accentColor: Colors.green[600],
-          brightness: Brightness.dark
+          brightness: Brightness.dark,
         ),
       ),
-      home: CalculatorHome(),
+      home: const CalculatorHome(),
     );
   }
 }
@@ -53,11 +54,11 @@ enum _messageMode {
   ERROR,
   WARNING,
   NOTICE,
-  EASTER_EGG
+  EASTER_EGG,
 }
 enum _games {
   NONE,
-  PI
+  PI,
 }
 
 class _CalculatorHomeState extends State<CalculatorHome> {
@@ -78,11 +79,13 @@ class _CalculatorHomeState extends State<CalculatorHome> {
   // Toggles
   /// Defaults to degree mode (false)
   bool _useRadians = false;
+
   /// Refers to the sin, cos, sqrt, etc.
   bool _invertedMode = false;
   //bool _toggled = false;
   /// Whether or not the result is an error.
   bool _errored = false;
+
   /// Whether or not the result is an Easter egg.
   /// Refrain from using this for real calculations.
   bool _egged = false;
@@ -93,7 +96,8 @@ class _CalculatorHomeState extends State<CalculatorHome> {
   // Game Mode
   final _games _game = _games.NONE;
 
-  void _setSecondaryError(String message, [_messageMode type = _messageMode.ERROR]) {
+  void _setSecondaryError(String message,
+      [_messageMode type = _messageMode.ERROR]) {
     _secondaryErrorValue = message;
     _secondaryErrorType = type;
     // The following is slightly convoluted for "show this for 3 seconds and fade out"
@@ -243,8 +247,10 @@ class _CalculatorHomeState extends State<CalculatorHome> {
           _errored = true;
         }
         if (originalExp.startsWith("4÷1")) {
-          _setSecondaryError("Happy April Fools' Day!", _messageMode.EASTER_EGG);
-          if (DateTime.now().month == DateTime.april && DateTime.now().day == 1) {
+          _setSecondaryError(
+              "Happy April Fools' Day!", _messageMode.EASTER_EGG);
+          if (DateTime.now().month == DateTime.april &&
+              DateTime.now().day == 1) {
             _controller.text = "https://youtu.be/bxqLsrlakK8";
             _errored = true;
             _egged = true;
@@ -277,13 +283,13 @@ class _CalculatorHomeState extends State<CalculatorHome> {
 
   Widget _buildButton(String label, [Function()? func]) {
     func ??= () {
-        if (_errored) {
-          _errored = false;
-          _egged = false;
-          _controller.text = '';
-        }
-        _append(label);
-      };
+      if (_errored) {
+        _errored = false;
+        _egged = false;
+        _controller.text = '';
+      }
+      _append(label);
+    };
     return Expanded(
       child: InkWell(
         onTap: func,
@@ -323,20 +329,24 @@ class _CalculatorHomeState extends State<CalculatorHome> {
             TextButton(
               onPressed: () => setState(() => _useRadians = !_useRadians),
               child: Text(_useRadians ? 'RAD' : 'DEG',
-                style: const TextStyle(color: Colors.grey)),
+                  style: const TextStyle(color: Colors.grey)),
             ),
             AnimatedOpacity(
               opacity: _game != _games.NONE ? 1.0 : 0.0,
               duration: const Duration(milliseconds: 200),
-              child: (_game != _games.NONE) ? IconButton(
-                icon: const Icon(Icons.videogame_asset_outlined),
-                onPressed:  () => _game == _games.PI ? null /* TODO: set the prior to the Digits of Pi game */
-                : null ,
-                color: Theme.of(context).colorScheme.secondary
-              ): Padding( //make the illusion that it's still there
-                padding: const EdgeInsets.all(8.0),
-                child: Icon(Icons.videogame_asset_outlined, color: Theme.of(context).colorScheme.secondary),
-              ),
+              child: (_game != _games.NONE)
+                  ? IconButton(
+                      icon: const Icon(Icons.videogame_asset_outlined),
+                      onPressed: () => _game == _games.PI
+                          ? null /* TODO: set the prior to the Digits of Pi game */
+                          : null,
+                      color: Theme.of(context).colorScheme.secondary)
+                  : Padding(
+                      //make the illusion that it's still there
+                      padding: const EdgeInsets.all(8.0),
+                      child: Icon(Icons.videogame_asset_outlined,
+                          color: Theme.of(context).colorScheme.secondary),
+                    ),
             )
           ],
         ),
@@ -371,20 +381,33 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                     children: [
                       AnimatedOpacity(
                         opacity: _secondaryErrorVisible ? 1.0 : 0.0,
-                        duration: _secondaryErrorVisible ? const Duration(milliseconds: 10) : const Duration(seconds: 1),
+                        duration: _secondaryErrorVisible
+                            ? const Duration(milliseconds: 10)
+                            : const Duration(seconds: 1),
                         //onEnd: () => _secondaryErrorVisible = false,
                         child: Text(
                           _secondaryErrorValue,
                           style: TextStyle(
-                            color: _secondaryErrorType == _messageMode.ERROR ? Colors.red
-                            : _secondaryErrorType == _messageMode.WARNING ? Colors.amber
-                            : _secondaryErrorType == _messageMode.NOTICE ? Theme.of(context).textTheme.bodyText1?.color
-                            : _secondaryErrorType == _messageMode.EASTER_EGG ? Colors.lightBlue
-                            : Colors.red, //even though this slot will never be used
-                            fontSize: (MediaQuery.of(context).orientation == Orientation.portrait)
-                                  ? 32.0
-                                  : 20.0, //24
-                          )),
+                            color: _secondaryErrorType == _messageMode.ERROR
+                                ? Colors.red
+                                : _secondaryErrorType == _messageMode.WARNING
+                                    ? Colors.amber
+                                    : _secondaryErrorType == _messageMode.NOTICE
+                                        ? Theme.of(context)
+                                            .textTheme
+                                            .bodyText1
+                                            ?.color
+                                        : _secondaryErrorType ==
+                                                _messageMode.EASTER_EGG
+                                            ? Colors.lightBlue
+                                            : Colors
+                                                .red, //even though this slot will never be used
+                            fontSize: (MediaQuery.of(context).orientation ==
+                                    Orientation.portrait)
+                                ? 32.0
+                                : 20.0, //24
+                          ),
+                        ),
                       )
                     ],
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -498,48 +521,54 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                           _buildButton('=', _equals),
                         ],
                       )),
-                      if (MediaQuery.of(context).size.width <= _twoPageBreakpoint) InkWell(
-                        child: Container(
-                          color: Theme.of(context).colorScheme.secondary,
-                          child: const Icon(
-                            Icons.chevron_left,
-                            color: Colors.white,
+                      if (MediaQuery.of(context).size.width <=
+                          _twoPageBreakpoint)
+                        InkWell(
+                          child: Container(
+                            color: Theme.of(context).colorScheme.secondary,
+                            child: const Icon(
+                              Icons.chevron_left,
+                              color: Colors.white,
+                            ),
+                          ),
+                          onTap: () => _pageController.animateToPage(
+                            1,
+                            duration: const Duration(milliseconds: 500),
+                            curve: Curves.ease,
                           ),
                         ),
-                        onTap: () => _pageController.animateToPage(
-                          1,
-                          duration: const Duration(milliseconds: 500),
-                          curve: Curves.ease,
-                        ),
-                      ),
                     ],
                   ),
                   Material(
                     color: Theme.of(context).colorScheme.secondary,
                     child: Row(
                       children: [
-                        if (MediaQuery.of(context).size.width <= _twoPageBreakpoint) InkWell(
-                          child: const SizedBox(
-                            height: double.infinity,
-                            //color: _opColor,
-                            child: Icon(
-                              Icons.chevron_right,
-                              color: Colors.white,
+                        if (MediaQuery.of(context).size.width <=
+                            _twoPageBreakpoint)
+                          InkWell(
+                            child: const SizedBox(
+                              height: double.infinity,
+                              //color: _opColor,
+                              child: Icon(
+                                Icons.chevron_right,
+                                color: Colors.white,
+                              ),
+                            ),
+                            onTap: () => _pageController.animateToPage(
+                              0,
+                              duration: const Duration(milliseconds: 500),
+                              curve: Curves.ease,
                             ),
                           ),
-                          onTap: () => _pageController.animateToPage(
-                            0,
-                            duration: const Duration(milliseconds: 500),
-                            curve: Curves.ease,
-                          ),
-                        ),
                         Expanded(
                           child: Column(
                             children: [
                               Expanded(
                                 child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
                                   children: [
                                     _buildButton(
                                         _invertedMode ? 'sin⁻¹' : 'sin',
@@ -561,8 +590,10 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                               ),
                               Expanded(
                                 child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
                                   children: [
                                     _buildButton(
                                         _invertedMode ? 'eˣ' : 'ln',
@@ -584,8 +615,10 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                               ),
                               Expanded(
                                 child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
                                   children: [
                                     _buildButton('π'),
                                     _buildButton('e', () => _append('℮')),
@@ -595,20 +628,25 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                               ),
                               Expanded(
                                 child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
                                   children: [
-                                    _buildButton(_invertedMode ? '𝗜𝗡𝗩' : 'INV',
-                                        () {
+                                    _buildButton(
+                                        _invertedMode ? '𝗜𝗡𝗩' : 'INV', () {
                                       setState(() {
                                         _invertedMode = !_invertedMode;
                                       });
                                     }),
-                                    _buildButton(_useRadians ? 'RAD' : 'DEG', () {
+                                    _buildButton(_useRadians ? 'RAD' : 'DEG',
+                                        () {
                                       setState(() {
                                         _useRadians = !_useRadians;
                                       });
-                                      _setSecondaryError("This button will be removed in the future", _messageMode.WARNING);
+                                      _setSecondaryError(
+                                          "This button will be removed in the future",
+                                          _messageMode.WARNING);
                                     }),
                                     _buildButton('!'),
                                   ],
@@ -631,6 +669,8 @@ class _CalculatorHomeState extends State<CalculatorHome> {
 }
 
 class CalculatorHome extends StatefulWidget {
+  const CalculatorHome({Key? key}) : super(key: key);
+
   @override
   _CalculatorHomeState createState() => _CalculatorHomeState();
 }
