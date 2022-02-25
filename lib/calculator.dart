@@ -63,18 +63,18 @@ enum _games {
 class _CalculatorHomeState extends State<CalculatorHome> {
   // Statics
   TextSelection _currentSelection =
-      TextSelection(baseOffset: 0, extentOffset: 0);
+      const TextSelection(baseOffset: 0, extentOffset: 0);
   final GlobalKey _textFieldKey = GlobalKey();
-  final textFieldPadding = EdgeInsets.only(right: 8.0);
+  final textFieldPadding = const EdgeInsets.only(right: 8.0);
   static TextStyle textFieldTextStyle =
-      TextStyle(fontSize: 80.0, fontWeight: FontWeight.w300);
-  Color _numColor = Color.fromRGBO(48, 47, 63, .94);
-  Color _opColor = Color.fromRGBO(22, 21, 29, .93);
+      const TextStyle(fontSize: 80.0, fontWeight: FontWeight.w300);
+  final Color _numColor = const Color.fromRGBO(48, 47, 63, .94);
+  final Color _opColor = const Color.fromRGBO(22, 21, 29, .93);
   double? _fontSize = textFieldTextStyle.fontSize;
   static const _twoPageBreakpoint = 640;
   // Controllers
-  TextEditingController _controller = TextEditingController(text: '');
-  var _pageController = AdvancedPageController(initialPage: 0);
+  final TextEditingController _controller = TextEditingController(text: '');
+  final _pageController = AdvancedPageController(initialPage: 0);
   // Toggles
   /// Defaults to degree mode (false)
   bool _useRadians = false;
@@ -91,7 +91,7 @@ class _CalculatorHomeState extends State<CalculatorHome> {
   bool _secondaryErrorVisible = false;
   String _secondaryErrorValue = "";
   // Game Mode
-  _games _game = _games.NONE;
+  final _games _game = _games.NONE;
 
   void _setSecondaryError(String message, [_messageMode type = _messageMode.ERROR]) {
     _secondaryErrorValue = message;
@@ -99,7 +99,7 @@ class _CalculatorHomeState extends State<CalculatorHome> {
     // The following is slightly convoluted for "show this for 3 seconds and fade out"
     setState(() => _secondaryErrorVisible = true);
     (() async {
-      await Future.delayed(Duration(seconds: 3));
+      await Future.delayed(const Duration(seconds: 3));
       setState(() => _secondaryErrorVisible = false);
     })();
   }
@@ -232,7 +232,7 @@ class _CalculatorHomeState extends State<CalculatorHome> {
           "sqrt": math.sqrt,
           "fact": factorial,
         };
-        final evaluator = const ExpressionEvaluator();
+        const evaluator = ExpressionEvaluator();
         num outcome = evaluator.eval(exp, context);
         _controller.text = outcome
             .toStringAsPrecision(13)
@@ -276,8 +276,7 @@ class _CalculatorHomeState extends State<CalculatorHome> {
   }
 
   Widget _buildButton(String label, [Function()? func]) {
-    if (func == null)
-      func = () {
+    func ??= () {
         if (_errored) {
           _errored = false;
           _egged = false;
@@ -324,13 +323,13 @@ class _CalculatorHomeState extends State<CalculatorHome> {
             TextButton(
               onPressed: () => setState(() => _useRadians = !_useRadians),
               child: Text(_useRadians ? 'RAD' : 'DEG',
-                style: TextStyle(color: Colors.grey)),
+                style: const TextStyle(color: Colors.grey)),
             ),
             AnimatedOpacity(
               opacity: _game != _games.NONE ? 1.0 : 0.0,
-              duration: Duration(milliseconds: 200),
+              duration: const Duration(milliseconds: 200),
               child: (_game != _games.NONE) ? IconButton(
-                icon: Icon(Icons.videogame_asset_outlined),
+                icon: const Icon(Icons.videogame_asset_outlined),
                 onPressed:  () => _game == _games.PI ? null /* TODO: set the prior to the Digits of Pi game */
                 : null ,
                 color: Theme.of(context).colorScheme.secondary
@@ -372,7 +371,7 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                     children: [
                       AnimatedOpacity(
                         opacity: _secondaryErrorVisible ? 1.0 : 0.0,
-                        duration: _secondaryErrorVisible ? Duration(milliseconds: 10) : Duration(seconds: 1),
+                        duration: _secondaryErrorVisible ? const Duration(milliseconds: 10) : const Duration(seconds: 1),
                         //onEnd: () => _secondaryErrorVisible = false,
                         child: Text(
                           _secondaryErrorValue,
@@ -426,7 +425,7 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                               child: Material(
                                 color: _numColor,
                                 clipBehavior: Clip.antiAlias,
-                                borderRadius: BorderRadius.only(
+                                borderRadius: const BorderRadius.only(
                                     topRight: Radius.circular(8)),
                                 child: Column(
                                   children: [
@@ -502,14 +501,14 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                       if (MediaQuery.of(context).size.width <= _twoPageBreakpoint) InkWell(
                         child: Container(
                           color: Theme.of(context).colorScheme.secondary,
-                          child: Icon(
+                          child: const Icon(
                             Icons.chevron_left,
                             color: Colors.white,
                           ),
                         ),
                         onTap: () => _pageController.animateToPage(
                           1,
-                          duration: Duration(milliseconds: 500),
+                          duration: const Duration(milliseconds: 500),
                           curve: Curves.ease,
                         ),
                       ),
@@ -520,7 +519,7 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                     child: Row(
                       children: [
                         if (MediaQuery.of(context).size.width <= _twoPageBreakpoint) InkWell(
-                          child: Container(
+                          child: const SizedBox(
                             height: double.infinity,
                             //color: _opColor,
                             child: Icon(
@@ -530,7 +529,7 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                           ),
                           onTap: () => _pageController.animateToPage(
                             0,
-                            duration: Duration(milliseconds: 500),
+                            duration: const Duration(milliseconds: 500),
                             curve: Curves.ease,
                           ),
                         ),
