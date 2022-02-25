@@ -15,6 +15,7 @@ limitations under the License.
 */
 import 'package:flutter/material.dart';
 import 'package:expressions/expressions.dart';
+import 'dart:async';
 import 'dart:math' as math;
 import 'extra_math.dart';
 import 'page_controller.dart';
@@ -102,10 +103,9 @@ class _CalculatorHomeState extends State<CalculatorHome> {
     _secondaryErrorType = type;
     // The following is slightly convoluted for "show this for 3 seconds and fade out"
     setState(() => _secondaryErrorVisible = true);
-    (() async {
-      await Future.delayed(const Duration(seconds: 3));
+    Timer(const Duration(seconds: 3), () {
       setState(() => _secondaryErrorVisible = false);
-    })();
+    });
   }
 
   void _onTextChanged() {
