@@ -17,7 +17,6 @@ import 'package:flutter/material.dart';
 import 'package:expressions/expressions.dart';
 import 'dart:math' as math;
 import './extraMath.dart';
-import 'pageController.dart';
 
 class Calculator extends StatelessWidget {
   @override
@@ -74,7 +73,7 @@ class _CalculatorHomeState extends State<CalculatorHome> {
   static const _twoPageBreakpoint = 640;
   // Controllers
   TextEditingController _controller = TextEditingController(text: '');
-  var _pageController = AdvancedPageController(initialPage: 0);
+  var _pageController = PageController(initialPage: 0);
   // Toggles
   /// Defaults to degree mode (false)
   bool _useRadians = false;
@@ -309,12 +308,23 @@ class _CalculatorHomeState extends State<CalculatorHome> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  void didChangeDependencies() {
     if (MediaQuery.of(context).size.width > _twoPageBreakpoint) {
-      _pageController.viewportFraction = 0.5;
+      if (_pageController.viewportFraction != 0.5) {
+        _pageController.dispose();
+        _pageController = PageController(viewportFraction: 0.5);
+      }
     } else {
-      _pageController.viewportFraction = 1.0;
+      if (_pageController.viewportFraction != 1) {
+        _pageController.dispose();
+        _pageController = PageController(viewportFraction: 1);
+      }
     }
+    super.didChangeDependencies();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -609,7 +619,9 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                                       setState(() {
                                         _useRadians = !_useRadians;
                                       });
-                                      _setSecondaryError("This button will be removed in the future", _messageMode.WARNING);
+                                      _setSecondaryError(
+                                          "This button will be removed in the future",
+                                          _messageMode.WARNING);
                                     }),
                                     _buildButton('!'),
                                   ],
