@@ -1,6 +1,8 @@
 <!--MAKE SURE TO ALSO EDIT THE BUG REPORT / FEATURE REQUEST / PULL REQUEST TEMPLATES, IT'S A MUST!!!!-->
 <!--AND THEN YOU CAN ALSO REMOVE THIS COMMENTED TEXT XDDDDDDDDDDDDDDD-->
-
+<p align="center">
+  <img width="30%" src="https://raw.githubusercontent.com/dahliaOS/brand/master/dahliaOS/svg/logotypewhitetext.svg#gh-dark-mode-only"
+</p>
 <p align="center">
 <a href="https://dahliaos.io">Website</a> ●
 <a href="https://discord.gg/7qVbJHR">Discord</a> ●
