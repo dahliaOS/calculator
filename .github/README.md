@@ -1,6 +1,8 @@
 <!--MAKE SURE TO ALSO EDIT THE BUG REPORT / FEATURE REQUEST / PULL REQUEST TEMPLATES, IT'S A MUST!!!!-->
 <!--AND THEN YOU CAN ALSO REMOVE THIS COMMENTED TEXT XDDDDDDDDDDDDDDD-->
-
+<p align="center">
+  <img width="30%" src="https://raw.githubusercontent.com/dahliaOS/brand/master/dahliaOS/svg/logotypewhitetext.svg#gh-dark-mode-only"
+</p>
 <p align="center">
 <a href="https://dahliaos.io">Website</a> ●
 <a href="https://discord.gg/7qVbJHR">Discord</a> ●
@@ -15,9 +17,14 @@
 If you're wondering how to contribute to the project, please refer to [CONTRIBUTING.md](../CONTRIBUTING.md)
 
 ## License
-
 <p align="left">
-  <img width="40%" src="https://github.com/dahliaOS/brand/blob/master/dahliaOS/svg/logotypeblacktext.svg"
+  <img width="45%" src="https://raw.githubusercontent.com/dahliaOS/brand/master/dahliaOS/svg/logotypewhitetext.svg#gh-dark-mode-only"
+  
+</p>
+  
+<p align="left">
+  <img width="45%" src="https://github.com/dahliaOS/brand/blob/master/dahliaOS/svg/logotypeblacktext.svg#gh-light-mode-only"
+  
 </p>
 
 Copyright @ 2019-2021 The dahliaOS Authors contact@dahliaos.io
