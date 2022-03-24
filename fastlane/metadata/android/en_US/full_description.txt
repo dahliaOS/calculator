@@ -1,0 +1,3 @@
+dahliaOS Calculator is a system app for dahliaOS and a basic
+arithmetic calculator. It supports the basic four operations,
+as well as pi, the number e, sin/cos/tan, and more.
