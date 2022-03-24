@@ -59,6 +59,12 @@ enum _games {
   NONE,
   PI
 }
+enum _blockable {
+  OPERATORS,
+  DIGITS,
+  EQUALS,
+  FUNCTIONS
+}
 
 class _CalculatorHomeState extends State<CalculatorHome> {
   // Statics
@@ -83,6 +89,11 @@ class _CalculatorHomeState extends State<CalculatorHome> {
   //bool _toggled = false;
   /// Whether or not the result is an error.
   bool _errored = false;
+  /// Whether a calculation result is showing.
+  /// This shows the body in bold and resets when adding new buttons.
+  bool _solved = false;
+  /// What to block.
+  List<_blockable> _blocking = [];
   /// Whether or not the result is an Easter egg.
   /// Refrain from using this for real calculations.
   bool _egged = false;
@@ -157,26 +168,28 @@ class _CalculatorHomeState extends State<CalculatorHome> {
 
   void _clear([bool longPress = false]) {
     setState(() {
-      if (_errored) {
+      if (_errored || _solved || longPress) {
         _errored = false;
         _egged = false;
+        _solved = false;
         _controller.text = '';
-      } else if (longPress) {
-        _controller.text = '';
+        _blocking = [];
       } else {
-        if (_controller.selection.baseOffset >= 0) {
-          _currentSelection = TextSelection(
-              baseOffset: _controller.selection.baseOffset - 1,
-              extentOffset: _controller.selection.extentOffset - 1);
-          _controller.text = _controller.text
-                  .substring(0, _controller.selection.baseOffset - 1) +
-              _controller.text.substring(
-                  _controller.selection.baseOffset, _controller.text.length);
-          _controller.selection = _currentSelection;
-        } else {
-          _controller.text =
+        // if (_controller.selection.baseOffset >= 0) {
+        //   _currentSelection = TextSelection(
+        //       baseOffset: _controller.selection.baseOffset - 1,
+        //       extentOffset: _controller.selection.extentOffset - 1);
+        //   _controller.text = _controller.text
+        //           .substring(0, _controller.selection.baseOffset - 1) +
+        //       _controller.text.substring(
+        //           _controller.selection.baseOffset, _controller.text.length);
+        //   _controller.selection = _currentSelection;
+        // } else {
+          if (_controller.text.length > 0) {
+            _controller.text =
               _controller.text.substring(0, _controller.text.length - 1);
-        }
+          }
+        // }
       }
     });
     _onTextChanged();
@@ -186,6 +199,11 @@ class _CalculatorHomeState extends State<CalculatorHome> {
 
   void _equals() {
     String originalExp = _controller.text.toString();
+    if (_blocking.contains(_blockable.EQUALS)) {
+      _setSecondaryError("Cannot use this now", _messageMode.WARNING);
+      return;
+    }
+    if (_solved) return;
     setState(() {
       try {
         var diff = "(".allMatches(_controller.text).length -
@@ -241,15 +259,17 @@ class _CalculatorHomeState extends State<CalculatorHome> {
         if (_controller.text == "NaN") {
           _controller.text = "Impossible";
           _errored = true;
-        }
-        if (originalExp.startsWith("4÷1")) {
+        } else if (originalExp.startsWith("4÷1")) {
           _setSecondaryError("Happy April Fools' Day!", _messageMode.EASTER_EGG);
           if (DateTime.now().month == DateTime.april && DateTime.now().day == 1) {
             _controller.text = "https://youtu.be/bxqLsrlakK8";
             _errored = true;
             _egged = true;
           }
+        } else {
+          _solved = true;
         }
+        _blocking = [];
       } catch (e) {
         if (errorcount < 5 && originalExp == "error+123") {
           _controller.text = 'Congratulations!';
@@ -259,7 +279,7 @@ class _CalculatorHomeState extends State<CalculatorHome> {
           _controller.text = 'dead';
           _errored = true;
           _egged = true;
-        } else if (originalExp == "you little...π") {
+        } else if (originalExp == "you little...π" || originalExp == "you little...!") {
           _controller.text = 'warning';
           _errored = true;
         } else if (errorcount > 5) {
@@ -275,24 +295,47 @@ class _CalculatorHomeState extends State<CalculatorHome> {
     _onTextChanged();
   }
 
-  Widget _buildButton(String label, [Function()? func]) {
-    if (func == null)
-      func = () {
-        if (_errored) {
+  @deprecated
+  Widget _buildButton(String label, {
+    Function()? onPress,
+    Function()? onLongPress,
+    _blockable? blockingCategory,
+    Function()? block,
+    bool isOperator = false
+  }) {
+    if (onPress == null)
+      onPress = () {
+        if (_errored || (_solved && !isOperator)) {
           _errored = false;
           _egged = false;
+          _solved = false;
+          _blocking = [];
           _controller.text = '';
+        } else if (_solved && isOperator) {
+          _solved = false;
+          _blocking = [_blockable.OPERATORS, _blockable.EQUALS];
+        } else if (_blocking.contains(blockingCategory)) {
+          _setSecondaryError("Cannot use that now", _messageMode.WARNING);
+          return;
         }
         _append(label);
+        block?.call();
       };
     return Expanded(
       child: InkWell(
-        onTap: func,
-        onLongPress: (label == 'C')
+        onTap: onPress,
+        onLongPress: (onLongPress != null) ? onLongPress() : (label == 'C')
             ? () => _clear(true)
-            : (_errored)
-                ? () => _append(label)
-                : null,
+            : (label == '=' && _blocking.contains(blockingCategory))
+              ? () {
+                _blocking = [];
+                _equals();
+              }
+            : (_errored || _solved || _blocking.contains(blockingCategory))
+              ? () {
+                _append(label);
+                _blocking = [];
+              } : null,
         child: Center(
             child: Text(
           label,
@@ -358,6 +401,7 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                   textAlign: TextAlign.right,
                   style: textFieldTextStyle.copyWith(
                       fontSize: _fontSize,
+                      fontWeight: _solved ? FontWeight.bold : null,
                       color: _egged
                           ? Colors.lightBlue[400]
                           : _errored
@@ -368,27 +412,30 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                 Expanded(child: Container()),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    children: [
-                      AnimatedOpacity(
-                        opacity: _secondaryErrorVisible ? 1.0 : 0.0,
-                        duration: _secondaryErrorVisible ? Duration(milliseconds: 10) : Duration(seconds: 1),
-                        //onEnd: () => _secondaryErrorVisible = false,
-                        child: Text(
-                          _secondaryErrorValue,
-                          style: TextStyle(
-                            color: _secondaryErrorType == _messageMode.ERROR ? Colors.red
-                            : _secondaryErrorType == _messageMode.WARNING ? Colors.amber
-                            : _secondaryErrorType == _messageMode.NOTICE ? Theme.of(context).textTheme.bodyText1?.color
-                            : _secondaryErrorType == _messageMode.EASTER_EGG ? Colors.lightBlue
-                            : Colors.red, //even though this slot will never be used
-                            fontSize: (MediaQuery.of(context).orientation == Orientation.portrait)
-                                  ? 32.0
-                                  : 20.0, //24
-                          )),
-                      )
-                    ],
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        AnimatedOpacity(
+                          opacity: _secondaryErrorVisible ? 1.0 : 0.0,
+                          duration: _secondaryErrorVisible ? Duration(milliseconds: 10) : Duration(seconds: 1),
+                          //onEnd: () => _secondaryErrorVisible = false,
+                          child: Text(
+                            _secondaryErrorValue,
+                            style: TextStyle(
+                              color: _secondaryErrorType == _messageMode.ERROR ? Colors.red
+                              : _secondaryErrorType == _messageMode.WARNING ? Colors.amber
+                              : _secondaryErrorType == _messageMode.NOTICE ? Theme.of(context).textTheme.bodyText1?.color
+                              : _secondaryErrorType == _messageMode.EASTER_EGG ? Colors.lightBlue
+                              : Colors.red, //even though this slot will never be used
+                              fontSize: 20.0,
+                            )),
+                        ),
+                        //Expanded(child: Container())
+                      ],
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisSize: MainAxisSize.min,
+                    ),
                   ),
                 ),
               ],
@@ -415,7 +462,7 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceEvenly,
                                 children: [
-                                  _buildButton('C', _clear),
+                                  _buildButton('C', onPress: _clear),
                                   _buildButton('('),
                                   _buildButton(')'),
                                 ],
@@ -437,9 +484,9 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                                         mainAxisAlignment:
                                             MainAxisAlignment.spaceEvenly,
                                         children: [
-                                          _buildButton('7'),
-                                          _buildButton('8'),
-                                          _buildButton('9'),
+                                          _buildButton('7', blockingCategory: _blockable.DIGITS, block: () => _blocking = []),
+                                          _buildButton('8', blockingCategory: _blockable.DIGITS, block: () => _blocking = []),
+                                          _buildButton('9', blockingCategory: _blockable.DIGITS, block: () => _blocking = []),
                                         ],
                                       ),
                                     ),
@@ -450,9 +497,9 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                                         mainAxisAlignment:
                                             MainAxisAlignment.spaceEvenly,
                                         children: [
-                                          _buildButton('4'),
-                                          _buildButton('5'),
-                                          _buildButton('6'),
+                                          _buildButton('4', blockingCategory: _blockable.DIGITS, block: () => _blocking = []),
+                                          _buildButton('5', blockingCategory: _blockable.DIGITS, block: () => _blocking = []),
+                                          _buildButton('6', blockingCategory: _blockable.DIGITS, block: () => _blocking = []),
                                         ],
                                       ),
                                     ),
@@ -463,9 +510,9 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                                         mainAxisAlignment:
                                             MainAxisAlignment.spaceEvenly,
                                         children: [
-                                          _buildButton('1'),
-                                          _buildButton('2'),
-                                          _buildButton('3'),
+                                          _buildButton('1', blockingCategory: _blockable.DIGITS, block: () => _blocking = []),
+                                          _buildButton('2', blockingCategory: _blockable.DIGITS, block: () => _blocking = []),
+                                          _buildButton('3', blockingCategory: _blockable.DIGITS, block: () => _blocking = []),
                                         ],
                                       ),
                                     ),
@@ -476,9 +523,9 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                                         mainAxisAlignment:
                                             MainAxisAlignment.spaceEvenly,
                                         children: [
-                                          _buildButton('%'),
-                                          _buildButton('0'),
-                                          _buildButton('.'),
+                                          _buildButton('%', blockingCategory: _blockable.OPERATORS, block: () => _blocking = [_blockable.EQUALS, _blockable.OPERATORS]),
+                                          _buildButton('0', blockingCategory: _blockable.DIGITS, block: () => _blocking = []),
+                                          _buildButton('.', blockingCategory: _blockable.OPERATORS, block: () => _blocking = [_blockable.EQUALS, _blockable.OPERATORS]),
                                         ],
                                       ),
                                     ),
@@ -492,11 +539,11 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                       Expanded(
                           child: Column(
                         children: <Widget>[
-                          _buildButton('÷'),
-                          _buildButton('×'),
-                          _buildButton('-'),
-                          _buildButton('+'),
-                          _buildButton('=', _equals),
+                          _buildButton('÷', blockingCategory: _blockable.OPERATORS, block: () => _blocking = [_blockable.EQUALS, _blockable.OPERATORS]),
+                          _buildButton('×', blockingCategory: _blockable.OPERATORS, block: () => _blocking = [_blockable.EQUALS, _blockable.OPERATORS]),
+                          _buildButton('-', blockingCategory: _blockable.OPERATORS, block: () => _blocking = [_blockable.EQUALS, _blockable.OPERATORS]),
+                          _buildButton('+', blockingCategory: _blockable.OPERATORS, block: () => _blocking = [_blockable.EQUALS, _blockable.OPERATORS]),
+                          _buildButton('=', onPress: _equals, blockingCategory: _blockable.EQUALS),
                         ],
                       )),
                       if (MediaQuery.of(context).size.width <= _twoPageBreakpoint) InkWell(
@@ -544,17 +591,17 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                                   children: [
                                     _buildButton(
                                         _invertedMode ? 'sin⁻¹' : 'sin',
-                                        () => _invertedMode
+                                        onPress: () => _invertedMode
                                             ? _append('sin⁻¹(')
                                             : _append('sin(')),
                                     _buildButton(
                                         _invertedMode ? 'cos⁻¹' : 'cos',
-                                        () => _invertedMode
+                                        onPress: () => _invertedMode
                                             ? _append('cos⁻¹(')
                                             : _append('cos(')),
                                     _buildButton(
                                         _invertedMode ? 'tan⁻¹' : 'tan',
-                                        () => _invertedMode
+                                        onPress: () => _invertedMode
                                             ? _append('tan⁻¹(')
                                             : _append('tan(')),
                                   ],
@@ -567,17 +614,17 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                                   children: [
                                     _buildButton(
                                         _invertedMode ? 'eˣ' : 'ln',
-                                        () => _invertedMode
+                                        onPress: () => _invertedMode
                                             ? _append('℮^(')
                                             : _append('ln(')),
                                     _buildButton(
                                         _invertedMode ? '10ˣ' : 'log',
-                                        () => _invertedMode
+                                        onPress: () => _invertedMode
                                             ? _append('10^(')
                                             : _append('log(')),
                                     _buildButton(
                                         _invertedMode ? 'x²' : '√',
-                                        () => _invertedMode
+                                        onPress: () => _invertedMode
                                             ? _append('^2')
                                             : _append('√(')),
                                   ],
@@ -589,7 +636,7 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                   children: [
                                     _buildButton('π'),
-                                    _buildButton('e', () => _append('℮')),
+                                    _buildButton('e', onPress: () => _append('℮')),
                                     _buildButton('^'),
                                   ],
                                 ),
@@ -600,12 +647,12 @@ class _CalculatorHomeState extends State<CalculatorHome> {
                                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                   children: [
                                     _buildButton(_invertedMode ? '𝗜𝗡𝗩' : 'INV',
-                                        () {
+                                        onPress: () {
                                       setState(() {
                                         _invertedMode = !_invertedMode;
                                       });
                                     }),
-                                    _buildButton(_useRadians ? 'RAD' : 'DEG', () {
+                                    _buildButton(_useRadians ? 'RAD' : 'DEG', onPress: () {
                                       setState(() {
                                         _useRadians = !_useRadians;
                                       });
