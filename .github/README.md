@@ -55,9 +55,10 @@ If you're wondering how to contribute to the project, please refer to [CONTRIBUT
 ## License
 
 <p align="left">
-  <img width="40%" src="https://github.com/dahliaOS/brand/blob/main/assets/dahliaos/banner/monochrome_dark.svg#gh-dark-mode-only"/>
-  <img width="40%" src="https://github.com/dahliaOS/brand/blob/main/assets/dahliaos/banner/monochrome_light.svg#gh-light-mode-only"/>
+  <img width="30%" src="https://github.com/dahliaOS/brand/blob/main/dahliaOS/logotype/svg/logotype-dark.svg#gh-dark-mode-only%22/%3E
+  <img width="30%" src="https://github.com/dahliaOS/brand/blob/main/dahliaOS/logotype/svg/logotype-light.svg#gh-light-mode-only%22/%3E
 </p>
+
 
 Copyright @ 2019-2022 - The dahliaOS Authors - contact@dahliaos.io
 
